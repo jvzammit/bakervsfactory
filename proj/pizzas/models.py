@@ -78,3 +78,16 @@ class Customer(models.Model):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+
+    def pizzas_ordered(self):
+        return Pizza.objects.filter(
+            id__in=self.order_set.values_list('pizzas__id', flat=True)
+        ).distinct()
+
+    @property
+    def is_vegan(self):
+        return all([pizza.is_vegan for pizza in self.pizzas_ordered()])
+
+    @property
+    def is_vegetarian(self):
+        return all([pizza.is_vegetarian for pizza in self.pizzas_ordered()])

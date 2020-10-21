@@ -6,6 +6,7 @@ from model_bakery import baker
 from django.test import TestCase
 
 from pizzas.models import (
+    Customer,
     Order,
     Pizza,
 )
@@ -90,3 +91,34 @@ class CustomerTest(TestCase):
         customer = baker.make(
             'pizzas.Customer', first_name='Bob', last_name='Smith')
         self.assertEqual(str(customer), 'Bob Smith')
+
+    def test_pizzas_ordered(self):
+        load_data()
+        rossa = Pizza.objects.get(name='rossa')
+        margherita = Pizza.objects.get(name='margherita')
+        capricciosa = Pizza.objects.get(name='capricciosa')
+        diablo = Pizza.objects.get(name='diablo')
+        campagnola = Pizza.objects.get(name='campagnola')
+        (
+            customer_vegan, customer_veggy, customer_meat_eater
+        ) = Customer.objects.all()
+        with self.assertNumQueries(3):
+            self.assertCountEqual(
+                customer_vegan.pizzas_ordered(),
+                [rossa, campagnola])
+            self.assertCountEqual(
+                customer_veggy.pizzas_ordered(),
+                [rossa, margherita, campagnola])
+            self.assertCountEqual(
+                customer_meat_eater.pizzas_ordered(),
+                [rossa, margherita, diablo, capricciosa])
+
+    def test_is_vegan(self):
+        load_data()
+        (
+            customer_vegan, customer_veggy, customer_meat_eater
+        ) = Customer.objects.all()
+        with self.assertNumQueries(3):
+            self.assertTrue(customer_vegan.is_vegan)
+            self.assertFalse(customer_veggy.is_vegan)
+            self.assertFalse(customer_meat_eater.is_vegan)

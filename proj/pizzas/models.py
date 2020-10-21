@@ -1,5 +1,11 @@
 
 from django.db import models
+from django.db.models import (
+    Case,
+    Max,
+    Value,
+    When,
+)
 
 
 class Topping(models.Model):
@@ -17,27 +23,33 @@ class Topping(models.Model):
         return self.name
 
 
+class PizzaManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().annotate(
+            max_rating=Max('toppings__rating'),
+            is_vegan=Case(
+                When(max_rating=Topping.VEGAN, then=Value(True)),
+                default=Value(False),
+                output_field=models.BooleanField(),
+            ),
+            is_vegetarian=Case(
+                When(max_rating__lte=Topping.VEGETARIAN, then=Value(True)),
+                default=Value(False),
+                output_field=models.BooleanField(),
+            )
+        )
+
+
 class Pizza(models.Model):
     name = models.CharField(max_length=64)
     toppings = models.ManyToManyField(Topping)
     price = models.DecimalField(max_digits=4, decimal_places=2)
 
+    objects = PizzaManager()
+
     def __str__(self):
         return self.name
-
-    @property
-    def is_vegan(self):
-        return all([
-            topping.rating == Topping.VEGAN for topping in self.toppings.all()
-        ])
-
-    @property
-    def is_vegetarian(self):
-        return all([
-            topping.rating in (
-                Topping.VEGAN, Topping.VEGETARIAN
-            ) for topping in self.toppings.all()
-        ])
 
 
 class OrderManager(models.Manager):

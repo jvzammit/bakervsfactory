@@ -5,12 +5,13 @@ from django.db import models
 class Topping(models.Model):
     VEGAN = 0
     VEGETARIAN = 1
+    NON_VG_NON_V = 2
     TOPPING_TYPE_CHOICES = (
         (VEGAN, 'Vegan-friendly'),
-        (VEGETARIAN, 'Vegetarian-friendly'))
+        (VEGETARIAN, 'Vegetarian-friendly'),
+        (NON_VG_NON_V, 'Non-vegan non-veg'))
     name = models.CharField(max_length=64)
-    rating = models.PositiveSmallIntegerField(
-        blank=True, null=True, choices=TOPPING_TYPE_CHOICES)
+    rating = models.PositiveSmallIntegerField(choices=TOPPING_TYPE_CHOICES)
 
     def __str__(self):
         return self.name

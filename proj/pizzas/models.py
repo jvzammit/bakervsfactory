@@ -1,3 +1,4 @@
+
 from django.db import models
 
 
@@ -36,3 +37,31 @@ class Pizza(models.Model):
                 Topping.VEGAN, Topping.VEGETARIAN
             ) for topping in self.toppings.all()
         ])
+
+
+class OrderManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().annotate(
+            total=models.Sum('pizzas__price'))
+
+
+class Order(models.Model):
+    date = models.DateField()
+    customer = models.ForeignKey('pizzas.Customer', on_delete=models.CASCADE)
+    pizzas = models.ManyToManyField('pizzas.Pizza')
+
+    objects = OrderManager()
+
+    def __str__(self):
+        return (
+            f'On {self.date.strftime("%Y-%m-%d")} by '
+            f'{self.customer.first_name} {self.customer.last_name}')
+
+
+class Customer(models.Model):
+    first_name = models.CharField(max_length=32)
+    last_name = models.CharField(max_length=32)
+
+    def __str__(self):
+        return f'{self.first_name} {self.last_name}'

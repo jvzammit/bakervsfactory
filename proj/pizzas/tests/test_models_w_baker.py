@@ -1,9 +1,14 @@
 
+import datetime
+
 from model_bakery import baker
 
 from django.test import TestCase
 
-from pizzas.models import Pizza
+from pizzas.models import (
+    Order,
+    Pizza,
+)
 from pizzas.tests.utils_baker import load_data
 
 
@@ -49,3 +54,39 @@ class PizzaTest(TestCase):
         self.assertFalse(diablo.is_vegetarian)
         campagnola = Pizza.objects.get(name='campagnola')
         self.assertTrue(campagnola.is_vegetarian)
+
+
+class OrderManagerTest(TestCase):
+
+    def test_get_queryset_with_total(self):
+        load_data()
+        order = baker.make('pizzas.Order')
+
+        rossa = Pizza.objects.get(name='rossa')
+        campagnola = Pizza.objects.get(name='campagnola')
+        order.pizzas.add(rossa)
+        order.pizzas.add(campagnola)
+
+        with self.assertNumQueries(1):
+            total = Order.objects.filter(id=order.id).first().total
+
+        self.assertEqual(total, 16.0)
+
+
+class OrderTest(TestCase):
+
+    def test_str(self):
+        order = baker.make(
+            'pizzas.Order',
+            date=datetime.date(2020, 10, 30),
+            customer__first_name='Bob',
+            customer__last_name='Smith')
+        self.assertEqual(str(order), 'On 2020-10-30 by Bob Smith')
+
+
+class CustomerTest(TestCase):
+
+    def test_str(self):
+        customer = baker.make(
+            'pizzas.Customer', first_name='Bob', last_name='Smith')
+        self.assertEqual(str(customer), 'Bob Smith')

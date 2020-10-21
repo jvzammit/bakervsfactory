@@ -57,3 +57,25 @@ def load_data():
     campagnola.toppings.add(mushrooms)
     campagnola.toppings.add(olives)
     campagnola.toppings.add(aubergines)
+
+    # customers
+    vegan, veggy, meaty = baker.make('pizzas.Customer', _quantity=3)
+
+    # orders - vegan customer
+    ord1, ord2 = baker.make('pizzas.Order', customer=vegan, _quantity=2)
+    ord1.pizzas.add(rossa)
+    ord1.pizzas.add(campagnola)
+    ord2.pizzas.add(campagnola)
+
+    # orders - vegetarian customer
+    ord3, ord4 = baker.make('pizzas.Order', customer=vegan, _quantity=2)
+    ord3.pizzas.add(rossa)
+    ord3.pizzas.add(margherita)
+    ord4.pizzas.add(campagnola)
+
+    # orders - non vegan, non vegetarian customer
+    ord5, ord6, ord7 = baker.make('pizzas.Order', customer=vegan, _quantity=3)
+    ord5.pizzas.add(rossa)
+    ord6.pizzas.add(margherita)
+    ord7.pizzas.add(diablo)
+    ord7.pizzas.add(capricciosa)
